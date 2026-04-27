@@ -1,5 +1,6 @@
 package FinalProjectBeta;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -15,9 +16,24 @@ public class GameServer {
     private static final int PORT = 8081;
     private static Connection connection;
 
+    private static GameServer gameServer;
+
+    private ObjectOutputStream output;
+    private ObjectInputStream input;
+
     public static void main(String[] args) throws SQLException {
         System.out.println("Game server started...");
         connection = DBConnection.getConnection();
+
+        gameServer = new GameServer();
+
+        JFrame waitingFrame = new JFrame("Server Waiting");
+        JLabel waitingLabel = new JLabel("Waiting for client connection ..");
+
+        waitingFrame.add(waitingLabel);
+        waitingFrame.setSize(600, 300);
+        waitingFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        waitingFrame.setVisible(true);
 
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
@@ -25,67 +41,15 @@ public class GameServer {
             Socket socket = serverSocket.accept();
             System.out.println("Client connected: " + socket);
 
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+            gameServer.output = new ObjectOutputStream(socket.getOutputStream());
+            gameServer.input = new ObjectInputStream(socket.getInputStream());
 
-            //Whether user is logging in
-            String login = (String) inputStream.readObject();
+            waitingFrame.dispose();
 
-            // Receive username from client
-            String username = (String) inputStream.readObject();
-            String password = (String) inputStream.readObject();
-
-            //Condition plays if LOGIN was entered.
-            if(login.equalsIgnoreCase("LOGIN")) {
-                System.out.println("Login request from: " + username + " Password: " + password);
-                User user = getUser(username, password);
-
-                /*
-                This while loop uses the fact that getUser will return a user with -1 score to prevent the server
-                from moving on until an existing user is found.
-                */
-                while(user.getScore() < 0) {
-                    String message = "USER NOT FOUND. Re-enter username and password.";
-                    System.out.println("Login failed.");
-                    outputStream.writeObject(message);
-                    //Waits for Client to send new username and password in this order before moving on
-                    username = (String) inputStream.readObject();
-                    password = (String) inputStream.readObject();
-                    System.out.println("Login request from: " + username + " Password: " + password);
-                    user = getUser(username, password);//reruns getUser to see if the newly entered info is valid
-                    //if the info is not valid, while loop will continue
-                }
-                String message = "Welcome, " + user.getUsername() + "! Your highest score: " + user.getScore() + "\n"
-                        + "Game Start!";
-                int score = user.getScore();
-                outputStream.writeObject(message);
-                outputStream.writeObject(score);
-
-            } else {
-                System.out.println("New user request from: " + username + " Password: " + password);
-                User user = addUser(username, password);
-                while(user.getScore() == -1) {
-                    String message = "Username: " + username + " already taken. Please re-enter username and password: ";
-                    outputStream.writeObject(message);
-                    username = (String) inputStream.readObject();
-                    password = (String) inputStream.readObject();
-                    user = addUser(username, password);
-                }
-
-                    String message = "New user " + user.getUsername() + " created. ";
-                    outputStream.writeObject(message);
-
-            }
-
-            System.out.println("Response sent to client. Closing connection...");
-
-        } catch(IOException e) {
+            gameServer.CreateQuiz();
+        } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch(ClassNotFoundException e) {
-            e.printStackTrace();
         }
-
-
     }
 
     public static User getUser(String username, String password) {
@@ -145,5 +109,36 @@ public class GameServer {
             e.printStackTrace();
         }
         return new User(username, -1);
+    }
+    public void sendLogin(String login) {
+        try {
+            output.writeObject(login);
+            output.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public String sendLoginInfo(String username, String password) {
+        try {
+            output.writeObject(username);
+            output.writeObject(password);
+            output.flush();
+
+            String message = (String) input.readObject();
+
+            return message;
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public void CreateQuiz() {
+        CardLayoutFrameServer frame = new CardLayoutFrameServer(gameServer);
+        frame.setTitle("Trivia Game");
+        frame.setSize(800, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
     }
 }

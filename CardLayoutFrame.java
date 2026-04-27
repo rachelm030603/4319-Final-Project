@@ -58,7 +58,7 @@ public class CardLayoutFrame extends JFrame {
         welcomeButtonsPanel.add(newUserButton);
 
 
-        JLabel title = new JLabel("Trivia Game", SwingConstants.CENTER);
+        JLabel title = new JLabel("Trivia Game Client", SwingConstants.CENTER);
         title.setFont(new Font("Tahoma", Font.BOLD, 50));
         welcomePanel.add(title, BorderLayout.CENTER);
         welcomePanel.add(welcomeButtonsPanel, BorderLayout.SOUTH);
