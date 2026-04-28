@@ -1,4 +1,4 @@
-package FinalProjectBeta;
+package FinalProjectDeliverable;
 
 // File: User.java
 import java.io.Serializable;

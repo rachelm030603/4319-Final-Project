@@ -1,4 +1,4 @@
-package FinalProjectRachel2;
+package FinalProjectDeliverable;
 
 import javax.swing.*;
 import java.io.IOException;

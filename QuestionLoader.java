@@ -1,4 +1,4 @@
-package FinalProjectBeta;
+package FinalProjectDeliverable;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -38,9 +38,9 @@ public class QuestionLoader {
         try {
             FileReader fileReader = null;
             if(category == 1) {
-                fileReader = new FileReader("src/FinalProjectBeta/MarineAnimalsQuestions.txt");
+                fileReader = new FileReader("src/FinalProjectDeliverable/MarineAnimalsQuestions.txt");
             } else if(category == 2) {
-                fileReader = new FileReader("src/FinalProjectBeta/SolarSystemQuestions.txt");
+                fileReader = new FileReader("src/FinalProjectDeliverable/SolarSystemQuestions.txt");
             } else {
                 System.out.print("CATEGORY SELECTOR FAILED");
                 return map;
@@ -72,4 +72,3 @@ public class QuestionLoader {
         return map;
     }
 }
-

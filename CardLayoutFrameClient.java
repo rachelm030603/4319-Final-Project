@@ -1,4 +1,4 @@
-package FinalProjectRachel2;
+package FinalProjectDeliverable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -100,7 +100,7 @@ public class CardLayoutFrameClient extends JFrame {
         styleButton(loginButton,50,242,161,187);
         welcomeButtonsPanel.add(loginButton);
 
-        newUserButton = new JButton("Create new user");
+        newUserButton = new JButton("Create user");
         newUserButton.setFont(new Font("Tahoma", Font.BOLD, 20));
         styleButton(newUserButton,50,242,161,187);
         welcomeButtonsPanel.add(newUserButton);
@@ -248,6 +248,8 @@ public class CardLayoutFrameClient extends JFrame {
         JPanel centerPanel = new JPanel(new GridLayout(2,1,0,0));
         centerPanel.add(scoreLabel);
         centerPanel.add(leaderboardArea);
+
+        centerPanel.setOpaque(false);
 
         resultPanel.add(resultLabel, BorderLayout.NORTH);
         resultPanel.add(centerPanel, BorderLayout.CENTER);
