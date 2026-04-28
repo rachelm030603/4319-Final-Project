@@ -181,14 +181,43 @@ public class GameServer {
     public void updateScore(String username, int score) {
         try {
             String sql = "UPDATE users SET score = ? WHERE username = ?";
-            PreparedStatement pstmt = connection.prepareStatement(sql);
-            pstmt.setInt(1, score);
-            pstmt.setString(2, username);
-            pstmt.executeUpdate();
+
+            if(getScore(username) >= score) {
+                return;
+            }
+
+            else {
+                PreparedStatement pstmt = connection.prepareStatement(sql);
+                pstmt.setInt(1, score);
+                pstmt.setString(2, username);
+                pstmt.executeUpdate();
+            }
 
         } catch(SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public int getScore(String username) {
+        try {
+            String sql = "SELECT * FROM users WHERE username = ?";
+            PreparedStatement selectStmt = connection.prepareStatement(sql);
+            selectStmt.setString(1, username);
+            ResultSet rs = selectStmt.executeQuery();
+
+            if(rs.next()) {
+                int score = rs.getInt("score");
+                return score;
+            }
+
+            else {
+                return 0;
+            }
+
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public String receiveUsername() {

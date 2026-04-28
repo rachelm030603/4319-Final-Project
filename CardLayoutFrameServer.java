@@ -162,7 +162,7 @@ public class CardLayoutFrameServer extends JFrame {
         resultLabel.setFont(new Font("Arial", Font.BOLD, 40));
 
         JLabel scoreLabel = new JLabel(
-                clientUsername + "'s score is " + clientScore,
+                clientUsername + "'s high score is " + clientScore,
                 SwingConstants.CENTER
         );
         scoreLabel.setFont(new Font("Arial", Font.BOLD, 45));
@@ -225,6 +225,7 @@ public class CardLayoutFrameServer extends JFrame {
             gameServer.sendMessage("Game Over");
             clientScore = gameServer.receiveScore();
             gameServer.updateScore(clientUsername, clientScore);
+            clientScore = gameServer.getScore(clientUsername);
             showResultsPanel();
             return;
         }
