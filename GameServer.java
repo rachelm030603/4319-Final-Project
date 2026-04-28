@@ -1,5 +1,6 @@
 package FinalProjectBeta;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -15,9 +16,14 @@ public class GameServer {
     private static final int PORT = 8081;
     private static Connection connection;
 
+    private static GameServer gameServer;
+    private static ObjectInputStream inputStream;
+    private static ObjectOutputStream outputStream;
+
     public static void main(String[] args) throws SQLException {
         System.out.println("Game server started...");
         connection = DBConnection.getConnection();
+        gameServer = new GameServer();
 
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
@@ -25,8 +31,8 @@ public class GameServer {
             Socket socket = serverSocket.accept();
             System.out.println("Client connected: " + socket);
 
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+            outputStream = new ObjectOutputStream(socket.getOutputStream());
+            inputStream = new ObjectInputStream(socket.getInputStream());
 
             //Whether user is logging in
             String login = (String) inputStream.readObject();
@@ -76,7 +82,7 @@ public class GameServer {
                     outputStream.writeObject(message);
 
             }
-
+            gameServer.createQuiz(username);
             System.out.println("Response sent to client. Closing connection...");
 
         } catch(IOException e) {
@@ -84,7 +90,6 @@ public class GameServer {
         } catch(ClassNotFoundException e) {
             e.printStackTrace();
         }
-
 
     }
 
@@ -145,5 +150,53 @@ public class GameServer {
             e.printStackTrace();
         }
         return new User(username, -1);
+    }
+    public void createQuiz(String username) {
+        CardLayoutFrameServer frame = new CardLayoutFrameServer(gameServer, username);
+        frame.setTitle("Quiz Game (Server)");
+        frame.setSize(800, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }
+
+    public void sendMessage(String message) {
+        try {
+            outputStream.writeObject(message);
+            outputStream.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int receiveScore() {
+        try {
+            int clientScore = (int) inputStream.readInt();
+            return clientScore;
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void updateScore(String username, int score) {
+        try {
+            String sql = "UPDATE users SET score = ? WHERE username = ?";
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+            pstmt.setInt(1, score);
+            pstmt.setString(2, username);
+            pstmt.executeUpdate();
+
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String receiveUsername() {
+        try {
+            String clientUsername = (String) inputStream.readObject();
+            return clientUsername;
+        } catch(IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

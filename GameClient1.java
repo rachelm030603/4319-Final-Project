@@ -27,11 +27,7 @@ public class GameClient1 {
             output = new ObjectOutputStream(socket.getOutputStream());
             input = new ObjectInputStream(socket.getInputStream());
             System.out.println("Connected to server.");
-            /*
-            output.writeObject("LOGIN");
-            output.writeObject("Maximo");
-            output.writeObject("password");
-            */
+
         } catch (IOException e) {
             System.out.println("Failed to connect to Server.");
             e.printStackTrace();
@@ -40,8 +36,8 @@ public class GameClient1 {
     }
 
     public void CreateQuiz() {
-        CardLayoutFrame frame = new CardLayoutFrame(gameClient1);
-        frame.setTitle("Trivia Game");
+        CardLayoutFrameClient frame = new CardLayoutFrameClient(gameClient1);
+        frame.setTitle("Quiz Game (Client)");
         frame.setSize(800, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
@@ -73,6 +69,18 @@ public class GameClient1 {
         }
     }
 
+    public String receiveMessage() {
+        String message = null;
+        try {
+            message = (String) input.readObject();
+            return message;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public int readScore() {
         try {
             int score = (int) input.readObject();
@@ -80,6 +88,15 @@ public class GameClient1 {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void sendScore(int score) {
+        try {
+            output.writeInt(score);
+            output.flush();
+        } catch(IOException e) {
             throw new RuntimeException(e);
         }
     }
