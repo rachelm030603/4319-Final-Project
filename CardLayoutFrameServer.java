@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class CardLayoutFrameServer extends JFrame {
+
     private static Icon stopWatch = new ImageIcon(
             CardLayoutFrameServer.class.getResource("stopWatch.png"));
     private static Icon fish = new ImageIcon(
@@ -20,200 +21,95 @@ public class CardLayoutFrameServer extends JFrame {
     private static Icon fireworks = new ImageIcon(
             CardLayoutFrameServer.class.getResource("fireworks.gif"));
 
+    private CardLayout cardLayout;
+
+    private Timer timer;
+
+    private int time = 10;
+    private int clientScore;
+    private int currentQuestionsIdx;
+
+    private String clientUsername;
+
     private JPanel cardPanel;
-    private JPanel welcomePanel;
-    private JPanel loginPanel;
-    private JPanel regPanel;
-    private JPanel quizPickPanel;
+    private JPanel quizSelectPanel;
     private JPanel gamePanel;
     private JPanel resultPanel;
 
-    private JButton loginButton;
-    private JButton regButton;
-    private JButton saveLoginInfoButton;
-    private JButton saveNewUserInfoButton;
     private JButton quizOneButton;
     private JButton quizTwoButton;
-    private JButton restartButton;
+    private JButton skipButton;
+    private ButtonHandler handler;
 
-    private JTextField loginUsernameField;
-    private JTextField newUserUsernameField;
-
-    private JPasswordField loginPasswordField;
-    private JPasswordField newUserPasswordField;
-
-    private GameServer gameServer;
-    private CardLayout cardLayout;
     private JLabel questionLabel;
     private JLabel timerLabel;
     private JLabel correctAnswerLabel;
+    private JLabel scoreLabel;
     private JLabel[] answerLabels = new JLabel[4];
-
-    private Timer timer;
-    private int time = 10;
-    private int currentQuestionsIdx = 0;
 
     private HashMap<Integer, ArrayList<String>> questionPair;
     private List<Integer> correctAnswers;
+    private JLabel leaderboardArea;
+    private GameServer gameServer;
 
-    private String clientUsername;
-    private int clientScore = 0;
-    private ButtonHandler handler;
-
-    public CardLayoutFrameServer (GameServer gameServer){
+    public CardLayoutFrameServer(GameServer gameServer, String clientUsername) {
         this.gameServer = gameServer;
+        this.clientUsername = clientUsername;
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
+        currentQuestionsIdx = 0;
 
-        createWelcomePanel();
-        createLoginPanel();
-        createRegistrationPanel();
-        createQuizPickPanel();
+        createQuizSelectPanel();
         createGamePanel();
         questionTimer();
 
-
         handler = new ButtonHandler();
-
-        loginButton.addActionListener(handler);
-        regButton.addActionListener(handler);
-        saveLoginInfoButton.addActionListener(handler);
-        saveNewUserInfoButton.addActionListener(handler);
         quizOneButton.addActionListener(handler);
         quizTwoButton.addActionListener(handler);
+        skipButton.addActionListener(handler);
+
 
         add(cardPanel);
-
-        setTitle("Server App");
-        setSize(700, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setVisible(true);
-    }
-    private void createWelcomePanel(){
-        welcomePanel = new JPanel(new BorderLayout());
-
-        JPanel welcomeButtonsPanel = new JPanel(new GridLayout(1, 2, 20, 5));
-
-        loginButton = new JButton("Log in");
-        loginButton.setFont(new Font("Tahoma", Font.BOLD, 25));
-        welcomeButtonsPanel.add(loginButton);
-
-        regButton = new JButton("Create new user");
-        regButton.setFont(new Font("Tahoma", Font.BOLD, 25));
-        welcomeButtonsPanel.add(regButton);
-
-
-        JLabel title = new JLabel("Trivia Game Server", SwingConstants.CENTER);
-        title.setFont(new Font("Tahoma", Font.BOLD, 50));
-        welcomePanel.add(title, BorderLayout.CENTER);
-        welcomePanel.add(welcomeButtonsPanel, BorderLayout.SOUTH);
-
-        welcomePanel.setBackground(new Color(229,252,164));
-
-        cardPanel.add(welcomePanel, "W");
     }
 
-    private void createLoginPanel(){
-        loginPanel = new JPanel(new BorderLayout());
+    public void createQuizSelectPanel() {
+        quizSelectPanel = new JPanel(new BorderLayout());
 
-        JPanel bigPanel = new JPanel(new GridLayout(1, 2, 30, 10));
-        JPanel infoButtonsPanel = new JPanel(new GridLayout(2, 1, 10, 40));
-
-        loginUsernameField = new JTextField("Enter your username.");
-        loginUsernameField.setFont(new Font("Tahoma", Font.PLAIN, 40));
-        loginPasswordField = new JPasswordField("password");
-        loginPasswordField.setFont(new Font("Tahoma", Font.PLAIN, 40));
-
-        infoButtonsPanel.add(loginUsernameField);
-        infoButtonsPanel.add(loginPasswordField);
-        bigPanel.add(infoButtonsPanel);
-
-        saveLoginInfoButton = new JButton("Log in");
-        saveLoginInfoButton.setFont(new Font("Tahoma", Font.PLAIN, 25));
-        bigPanel.add(saveLoginInfoButton);
-
-        loginPanel.add(bigPanel, BorderLayout.NORTH);
-
-        loginPanel.setBackground(new Color(229,252,164));
-
-        cardPanel.add(loginPanel, "L");
-    }
-    private void createRegistrationPanel(){
-        regPanel = new JPanel(new BorderLayout());
-
-        JPanel bigPanel = new JPanel(new GridLayout(1, 2, 30, 10));
-        JPanel infoButtonsPanel = new JPanel(new GridLayout(2, 1, 10, 40));
-
-        newUserUsernameField = new JTextField("Enter your username.");
-        newUserUsernameField.setFont(new Font("Tahoma", Font.PLAIN, 40));
-        newUserPasswordField = new JPasswordField("password");
-        newUserPasswordField.setFont(new Font("Tahoma", Font.PLAIN, 40));
-
-        infoButtonsPanel.add(newUserUsernameField);
-        infoButtonsPanel.add(newUserPasswordField);
-        bigPanel.add(infoButtonsPanel);
-
-        saveNewUserInfoButton = new JButton("Create User");
-        saveNewUserInfoButton.setFont(new Font("Tahoma", Font.PLAIN, 25));
-        bigPanel.add(saveNewUserInfoButton);
-
-        regPanel.add(bigPanel, BorderLayout.NORTH);
-
-        regPanel.setBackground(new Color(229,252,164));
-
-        cardPanel.add(regPanel, "N");
-    }
-    private void createQuizPickPanel() {
-
-        // 1. main panel creation
-        quizPickPanel = new JPanel(new BorderLayout());
-
-        // 2. title / top section
-        JLabel title = new JLabel("Choose a Quiz", SwingConstants.CENTER);
-        title.setFont(new Font("Tahoma", Font.BOLD, 40));
-        quizPickPanel.add(title, BorderLayout.NORTH);
-
-        // 3. quiz 1
+        //quiz 1
         JPanel quizOnePanel = new JPanel(new FlowLayout());
         JLabel quizOneLabel = new JLabel("Marine Animals Quiz");
         quizOneLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
         quizOnePanel.add(quizOneLabel);
-
         quizOneButton = new JButton(fish);
-        quizOneButton.setBackground(new Color(50, 172, 255));
+        //no button background
+        quizOneButton.setBackground(new Color(50,172,255));
         quizOnePanel.add(quizOneButton);
 
-        // 4. quiz 2
+        //quiz2
         JPanel quizTwoPanel = new JPanel(new FlowLayout());
-
         JLabel quizTwoLabel = new JLabel("Solar System Quiz");
         quizTwoLabel.setFont(new Font("Tahoma", Font.BOLD, 24));
         quizTwoPanel.add(quizTwoLabel);
-
         quizTwoButton = new JButton(solarSystem);
-        quizTwoButton.setBackground(new Color(0, 0, 0));
+        //no button background
+        quizTwoButton.setBackground(new Color(0,0,0));
         quizTwoPanel.add(quizTwoButton);
 
-        // 5. middle layout
-        JPanel midPanel = new JPanel(new GridLayout(1, 2, 0, 10));
+        JPanel midPanel = new JPanel(new GridLayout(1,2,0,10));
         midPanel.add(quizOnePanel);
         midPanel.add(quizTwoPanel);
 
-        quizPickPanel.add(midPanel, BorderLayout.CENTER);
-
-        JLabel prompt = new JLabel("Pick a category", SwingConstants.CENTER);
+        quizSelectPanel.add(midPanel,BorderLayout.CENTER);
+        JLabel prompt = new JLabel("Pick a category",SwingConstants.CENTER);
         prompt.setFont(new Font("Tahoma", Font.BOLD, 24));
-        quizPickPanel.add(prompt, BorderLayout.SOUTH);
-
-        // transparent panels
+        quizSelectPanel.add(prompt,BorderLayout.SOUTH);
+        //set panels clear
         midPanel.setOpaque(false);
         quizOnePanel.setOpaque(false);
         quizTwoPanel.setOpaque(false);
 
-        quizPickPanel.setBackground(new Color(229, 252, 164));
-
-        cardPanel.add(quizPickPanel, "Q");
+        quizSelectPanel.setBackground(new Color(229, 252,164));
+        cardPanel.add(quizSelectPanel, "U");
     }
 
     private void createGamePanel() {
@@ -252,6 +148,14 @@ public class CardLayoutFrameServer extends JFrame {
         middlePanel.add(answerPanel);
 
         gamePanel.add(middlePanel,BorderLayout.CENTER);
+
+        //add skip button
+        skipButton = new JButton("Skip / Next Question");
+        skipButton.setFont(new Font("Tahoma", Font.BOLD, 24));
+        skipButton.addActionListener(handler);
+
+        gamePanel.add(skipButton, BorderLayout.SOUTH);
+
         //set extra panels clear
         middlePanel.setOpaque(false);
         timerPanel.setOpaque(false);
@@ -260,101 +164,111 @@ public class CardLayoutFrameServer extends JFrame {
         gamePanel.setBackground(new Color(229, 252,164));
         cardPanel.add(gamePanel, "G");
     }
+
     private void createResultsPanel() {
+        //user score
         resultPanel = new JPanel(new BorderLayout());
 
         JLabel resultLabel = new JLabel("Results Screen", SwingConstants.CENTER);
         resultLabel.setFont(new Font("Arial", Font.BOLD, 40));
 
-        JLabel scoreLabel = new JLabel(
-                clientUsername + "'s score is " + clientScore,
-                SwingConstants.CENTER
-        );
+        scoreLabel = new JLabel("", SwingConstants.CENTER);
         scoreLabel.setFont(new Font("Arial", Font.BOLD, 45));
 
-        restartButton = new JButton("Restart");
-        restartButton.setFont(new Font("Arial", Font.BOLD, 30));
-        restartButton.addActionListener(handler);
+        //leaderboard
+        leaderboardArea = new JLabel();
+        leaderboardArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        leaderboardArea.setHorizontalAlignment(SwingConstants.CENTER);
+        leaderboardArea.setVerticalAlignment(SwingConstants.TOP);
+
+        JPanel centerPanel = new JPanel(new GridLayout(2,1,0,0));
+        centerPanel.add(scoreLabel);
+        centerPanel.add(leaderboardArea);
 
         resultPanel.add(resultLabel, BorderLayout.NORTH);
-        resultPanel.add(scoreLabel, BorderLayout.CENTER);
-        resultPanel.add(restartButton, BorderLayout.SOUTH);
+        resultPanel.add(centerPanel, BorderLayout.CENTER);
 
         cardPanel.add(resultPanel, "R");
     }
-    public void setClientResults(String username, int score) {
-        clientUsername = username;
-        clientScore = score;
-    }
+
     public void showResultsPanel() {
         createResultsPanel();
+        scoreLabel.setText(
+                clientUsername + "'s score is " + clientScore
+        );
+        String scoresText = "<html><div style='text-align: center;'>";
+
+        scoresText += "<b>Top 10 Scores</b><br>";
+        scoresText += "-------------------------<br><br>";
+
+        scoresText += gameServer.getLeaderboard()
+                .replace("\n", "<br>");
+
+        scoresText += "</div></html>";
+
+        leaderboardArea.setText(scoresText);
+
         cardLayout.show(cardPanel, "R");
     }
-    private class ButtonHandler implements ActionListener {
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == loginButton) {
-                gameServer.sendLogin("LOGIN");
-                cardLayout.show(cardPanel, "L");
-            } else if (e.getSource() == regButton) {
-                gameServer.sendLogin("NEW");
-                cardLayout.show(cardPanel, "N");
-            } else if (e.getSource() == saveLoginInfoButton) {
-                String message = gameServer.sendLoginInfo(
-                        loginUsernameField.getText(),
-                        new String(loginPasswordField.getPassword())
-                );
-                if (message.equalsIgnoreCase("USER NOT FOUND. Re-enter username and password.")) {
-                    JOptionPane.showMessageDialog(
-                            CardLayoutFrameServer.this,
-                            "USER NOT FOUND. Re-enter username and password."
-                    );
-                } else {
-                    JOptionPane.showMessageDialog(
-                            CardLayoutFrameServer.this,
-                            "Welcome " + loginUsernameField.getText() + "! Game start!"
-                    );
+    private void questionTimer() {
+        timer = new Timer(1000, new ActionListener() {
 
-                    cardLayout.show(cardPanel, "Q");
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                time--;
+                timerLabel.setText("" + time);
+
+                if (time == 0) {
+                    timer.stop();
+
+                    showCorrectAnswer();
+
+                    Timer nextQuestionTimer = new Timer(2000, new ActionListener() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            currentQuestionsIdx++;
+                            loadNextQuestions();
+                            gameServer.sendMessage("Next Question");
+                        }
+                    });
+
+                    nextQuestionTimer.setRepeats(false);
+                    nextQuestionTimer.start();
                 }
-
-            } else if (e.getSource() == saveNewUserInfoButton) {
-                String message = gameServer.sendLoginInfo(
-                        newUserUsernameField.getText(),
-                        new String(newUserPasswordField.getPassword())
-                );
-
-                if (message.equalsIgnoreCase("Username: " + newUserUsernameField.getText()
-                        + " already taken. Please re-enter username and password: ")) {
-                    JOptionPane.showMessageDialog(
-                            CardLayoutFrameServer.this,
-                            "USERNAME TAKEN. Re-enter username and password."
-                    );
-                } else {
-                    JOptionPane.showMessageDialog(
-                            CardLayoutFrameServer.this,
-                            "New user created! Welcome " + newUserUsernameField.getText() + "!"
-                    );
-
-                    cardLayout.show(cardPanel, "Q");
-                }
-            } else if (e.getSource() == quizOneButton) {
-                importQuestions(1);
-                loadNextQuestions();
-                cardLayout.show(cardPanel, "G");
-
-            } else if (e.getSource() == quizTwoButton) {
-                importQuestions(2);
-                loadNextQuestions();
-                cardLayout.show(cardPanel, "G");
-
-            } else if (e.getSource() == restartButton) {
-                currentQuestionsIdx = 0;
-                cardLayout.show(cardPanel, "W");
             }
-        }
+        });
     }
+
+    private void loadNextQuestions() {
+        if (questionPair == null || currentQuestionsIdx >= questionPair.size()) {
+            timer.stop();
+            gameServer.sendMessage("Game Over");
+            clientScore = gameServer.receiveScore();
+            gameServer.updateScore(clientUsername, clientScore);
+            //clientScore = gameServer.getScore(clientUsername);
+            showResultsPanel();
+            return;
+        }
+
+        time = 10;
+        timerLabel.setText("" + time);
+        correctAnswerLabel.setText("");
+
+        for (int i = 0; i < 4; i++) {
+            answerLabels[i].setBackground(Color.WHITE);
+        }
+
+        questionLabel.setText(questionPair.get(currentQuestionsIdx).get(0));
+
+        for (int i = 0; i < 4; i++) {
+            answerLabels[i].setText(questionPair.get(currentQuestionsIdx).get(i + 1));
+        }
+
+        timer.start();
+    }
+
     private void importQuestions(int index) {
         QuestionLoader questionLoader = new QuestionLoader();
         questionPair = questionLoader.readQuestions(index);
@@ -386,62 +300,39 @@ public class CardLayoutFrameServer extends JFrame {
         }
     }
 
-    private void loadNextQuestions() {
-        if (questionPair == null || currentQuestionsIdx >= questionPair.size()) {
-            timer.stop();
-            showResultsPanel();
-            return;
-        }
+    private void showCorrectAnswer() {
+        int correctIndex = correctAnswers.get(currentQuestionsIdx) - 1;
 
-        time = 10;
-        timerLabel.setText("" + time);
-        correctAnswerLabel.setText("");
+        answerLabels[correctIndex].setBackground(Color.GREEN);
 
-        for (int i = 0; i < 4; i++) {
-            answerLabels[i].setBackground(Color.WHITE);
-        }
-
-        questionLabel.setText(questionPair.get(currentQuestionsIdx).get(0));
-
-        for (int i = 0; i < 4; i++) {
-            answerLabels[i].setText(questionPair.get(currentQuestionsIdx).get(i + 1));
-        }
-
-        timer.start();
+        correctAnswerLabel.setText(
+                "Correct Answer: " + answerLabels[correctIndex].getText()
+        );
     }
 
-    private void questionTimer() {
-        timer = new Timer(1000, new ActionListener() {
+    private class ButtonHandler implements ActionListener {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                time--;
-                timerLabel.setText("" + time);
-
-                if (time == 0) {
-                    timer.stop();
-
-                    int correctIndex = correctAnswers.get(currentQuestionsIdx) - 1;
-
-                    answerLabels[correctIndex].setBackground(Color.GREEN);
-
-                    correctAnswerLabel.setText(
-                            "Correct Answer: " + answerLabels[correctIndex].getText()
-                    );
-
-                    Timer nextQuestionTimer = new Timer(2000, new ActionListener() {
-
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            currentQuestionsIdx++;
-                            loadNextQuestions();
-                        }
-                    });
-
-                    nextQuestionTimer.setRepeats(false);
-                    nextQuestionTimer.start();
-                }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if(e.getSource() == quizOneButton) {
+                importQuestions(1);
+                loadNextQuestions();
+                cardLayout.show(cardPanel, "G");
+                gameServer.sendMessage("Q1");
             }
-        });
+
+            else if(e.getSource() == quizTwoButton) {
+                importQuestions(2);
+                loadNextQuestions();
+                cardLayout.show(cardPanel, "G");
+                gameServer.sendMessage("Q2");
+            }else if(e.getSource() == skipButton){
+                timer.stop();
+                showCorrectAnswer();
+                gameServer.sendMessage("Next Question");
+                currentQuestionsIdx++;
+                loadNextQuestions();;
+            }
+        }
     }
 }
