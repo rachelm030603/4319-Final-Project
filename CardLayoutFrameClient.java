@@ -40,6 +40,8 @@ public class CardLayoutFrameClient extends JFrame {
     private JLabel questionLabel;
     private JLabel timerLabel;
     private JLabel correctAnswerLabel;
+    private JLabel scoreLabel;
+    private JLabel leaderboardArea;
     private JLabel[] answerLabels = new JLabel[4];
 
     private HashMap<Integer, ArrayList<String>> questionPair;
@@ -116,25 +118,33 @@ public class CardLayoutFrameClient extends JFrame {
     private void createLoginPanel() {
         loginPanel = new JPanel(new BorderLayout());
 
-        JPanel bigPanel = new JPanel(new GridLayout(1, 2, 30, 10));
-        JPanel infoButtonsPanel = new JPanel(new GridLayout(2, 1, 10, 40));
+        JPanel bigPanel = new JPanel(new GridLayout(4, 1, 30, 10));
+        //JPanel infoButtonsPanel = new JPanel(new GridLayout(2, 1, 10, 40));
 
-        loginUsernameField = new JTextField("Enter your username.");
+        loginUsernameField = new JTextField("Enter your username");
         loginUsernameField.setFont(new Font("Tahoma", Font.PLAIN, 40));
         loginPasswordField = new JPasswordField("password");
         loginPasswordField.setFont(new Font("Tahoma", Font.PLAIN, 40));
 
-        infoButtonsPanel.add(loginUsernameField);
-        infoButtonsPanel.add(loginPasswordField);
-        bigPanel.add(infoButtonsPanel);
+        //infoButtonsPanel.add(loginUsernameField);
+        //infoButtonsPanel.add(loginPasswordField);
+        //bigPanel.add(infoButtonsPanel);
 
         saveLoginInfoButton = new JButton("Log in");
         saveLoginInfoButton.setFont(new Font("Tahoma", Font.PLAIN, 25));
         styleButton(saveLoginInfoButton,50,242,161,187);
+
+        JPanel emptyPanel = new JPanel();
+
+        bigPanel.add(loginUsernameField);
+        bigPanel.add(loginPasswordField);
+        bigPanel.add(emptyPanel);
         bigPanel.add(saveLoginInfoButton);
 
-        loginPanel.add(bigPanel, BorderLayout.NORTH);
+        loginPanel.add(bigPanel, BorderLayout.CENTER);
         loginPanel.setBackground(new Color(229, 252,164));
+        bigPanel.setOpaque(false);
+        emptyPanel.setOpaque(false);
 
         cardPanel.add(loginPanel, "L");
     }
@@ -142,27 +152,35 @@ public class CardLayoutFrameClient extends JFrame {
     private void createNewUserPanel() {
         newUserPanel = new JPanel(new BorderLayout());
 
-        JPanel bigPanel = new JPanel(new GridLayout(1, 2, 30, 10));
+        JPanel bigPanel = new JPanel(new GridLayout(4, 1, 30, 10));
         bigPanel.setBackground(new Color(229, 252,164));
-        JPanel infoButtonsPanel = new JPanel(new GridLayout(2, 1, 10, 40));
-        infoButtonsPanel.setBackground(new Color(229, 252,164));
+        //JPanel infoButtonsPanel = new JPanel(new GridLayout(2, 1, 10, 40));
+        //infoButtonsPanel.setBackground(new Color(229, 252,164));
 
         newUserUsernameField = new JTextField("Enter your username.");
         newUserUsernameField.setFont(new Font("Tahoma", Font.PLAIN, 40));
         newUserPasswordField = new JPasswordField("password");
         newUserPasswordField.setFont(new Font("Tahoma", Font.PLAIN, 40));
 
-        infoButtonsPanel.add(newUserUsernameField);
-        infoButtonsPanel.add(newUserPasswordField);
-        bigPanel.add(infoButtonsPanel);
+        //infoButtonsPanel.add(newUserUsernameField);
+        //infoButtonsPanel.add(newUserPasswordField);
+        //bigPanel.add(infoButtonsPanel);
+        JPanel emptyPanel = new JPanel();
 
         saveNewUserInfoButton = new JButton("Create User");
         saveNewUserInfoButton.setFont(new Font("Tahoma", Font.PLAIN, 25));
         styleButton(saveNewUserInfoButton,50,242,161,187);
+
+        bigPanel.add(newUserUsernameField);
+        bigPanel.add(newUserPasswordField);
+        bigPanel.add(emptyPanel);
         bigPanel.add(saveNewUserInfoButton);
 
-        newUserPanel.add(bigPanel, BorderLayout.NORTH);
+        newUserPanel.add(bigPanel, BorderLayout.CENTER);
         newUserPanel.setBackground(new Color(229, 252,164));
+
+        bigPanel.setOpaque(false);
+        emptyPanel.setOpaque(false);
 
         cardPanel.add(newUserPanel, "N");
     }
@@ -214,29 +232,36 @@ public class CardLayoutFrameClient extends JFrame {
 
     public void createResultsPanel() {
         resultPanel = new JPanel(new BorderLayout());
-        JLabel resultLabel =new JLabel("Results Screen - " + username, SwingConstants.CENTER);
-        resultLabel.setFont(new Font("Arial", Font.PLAIN, 24));
-        resultLabel.setForeground(Color.WHITE);
-        resultPanel.add(resultLabel,BorderLayout.NORTH);
+
+        JLabel resultLabel = new JLabel("Results Screen", SwingConstants.CENTER);
+        resultLabel.setFont(new Font("Arial", Font.BOLD, 40));
+
+        scoreLabel = new JLabel("", SwingConstants.CENTER);
+        scoreLabel.setFont(new Font("Arial", Font.BOLD, 45));
+
+        //leaderboard
+        leaderboardArea = new JLabel();
+        leaderboardArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        leaderboardArea.setHorizontalAlignment(SwingConstants.CENTER);
+        leaderboardArea.setVerticalAlignment(SwingConstants.TOP);
+
+        JPanel centerPanel = new JPanel(new GridLayout(2,1,0,0));
+        centerPanel.add(scoreLabel);
+        centerPanel.add(leaderboardArea);
+
+        resultPanel.add(resultLabel, BorderLayout.NORTH);
+        resultPanel.add(centerPanel, BorderLayout.CENTER);
+
         cardPanel.add(resultPanel, "R");
-
-        JPanel scorePanel = new JPanel(new GridLayout(2,1,0,0));
-
-        JLabel scoreLabel = new JLabel("Your score is " + score+ "!",SwingConstants.CENTER);
-        JLabel fireGIF = new JLabel(fireworks);
-        scoreLabel.setFont(new Font("Arial", Font.BOLD,55));
-        scoreLabel.setForeground(Color.WHITE);
-        scorePanel.add(scoreLabel,BorderLayout.CENTER);
-        scorePanel.add(fireGIF,BorderLayout.CENTER);
-
-        scorePanel.setOpaque(false);
-
-        resultPanel.setBackground(new Color(12, 12,12));
-        resultPanel.add(scorePanel);
     }
 
-    public void showResultsPanel() {
+    public void showResultsPanel(String scoresText) {
         createResultsPanel();
+
+        scoreLabel.setText(username + "'s score is " + score);
+
+        leaderboardArea.setText(scoresText);
+
         cardLayout.show(cardPanel, "R");
     }
 
@@ -288,37 +313,9 @@ public class CardLayoutFrameClient extends JFrame {
         }
     }
 
-    private void serverNextQuestion() {
-        String message = gameClient1.receiveMessage();
-        if(message.equalsIgnoreCase("Next Question")) {
-            currentQuestionsIdx++;
-            loadNextQuestions();
-        } else if(message.equalsIgnoreCase("Game Over")) {
-            timer.stop();
-            gameClient1.sendScore(score);
-            showResultsPanel();
-        }
-
-        else {
-            JDialog popup = new JDialog(CardLayoutFrameClient.this, "Server Message", true);
-            popup.setSize(300, 150);
-            popup.setLocationRelativeTo(CardLayoutFrameClient.this);
-
-            JLabel errorMessage = new JLabel("<html>MISSING SERVER INPUT<html>");
-            errorMessage.setFont(new Font("Tahoma", Font.PLAIN, 20));
-
-            popup.add(errorMessage);
-
-            popup.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            popup.setVisible(true);
-        }
-    }
-
     private void loadNextQuestions() {
         if (questionPair == null || currentQuestionsIdx >= questionPair.size()) {
             timer.stop();
-            gameClient1.sendScore(score);
-            showResultsPanel();
             return;
         }
 
@@ -500,35 +497,42 @@ public class CardLayoutFrameClient extends JFrame {
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
     }
-    private void startServerListener() {
 
+    private void startServerListener() {
         Thread listenerThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                boolean running = true;
 
-                while (true) {
-
+                while (running) {
                     String message = gameClient1.receiveMessage();
 
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            if (message.equalsIgnoreCase("Next Question")) {
-
+                    if (message.equalsIgnoreCase("Next Question")) {
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
                                 currentQuestionsIdx++;
                                 loadNextQuestions();
-
-                            } else if (message.equalsIgnoreCase("Game Over")) {
-
-                                timer.stop();
-                                gameClient1.sendScore(score);
-                                showResultsPanel();
-
-                                return;
                             }
-                        }
-                    });
+                        });
+                    }
+
+                    else if (message.equalsIgnoreCase("Game Over")) {
+                        timer.stop();
+
+                        gameClient1.sendScore(score);
+
+                        String leaderboard = gameClient1.receiveMessage();
+
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                showResultsPanel(leaderboard);
+                            }
+                        });
+
+                        running = false;
+                    }
                 }
             }
         });

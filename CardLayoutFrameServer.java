@@ -1,4 +1,4 @@
-package FinalProjectBeta;
+package FinalProjectRachel2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,13 +13,13 @@ public class CardLayoutFrameServer extends JFrame {
     private static Icon stopWatch = new ImageIcon(
             CardLayoutFrameServer.class.getResource("stopWatch.png"));
     private static Icon fish = new ImageIcon(
-            CardLayoutFrameServer.class.getResource("fish.png"));
+            CardLayoutFrameServer.class.getResource("fishy.png"));
     private static Icon thinkingGIF = new ImageIcon(
             CardLayoutFrameServer.class.getResource("batman_think_120.gif"));
     private static Icon solarSystem = new ImageIcon(
             CardLayoutFrameServer.class.getResource("solarSystem.png"));
     private static Icon fireworks = new ImageIcon(
-            CardLayoutFrameServer.class.getResource("Fire_Night_Sticker_by_haenaillust.gif"));
+            CardLayoutFrameServer.class.getResource("fireworks.gif"));
 
     private CardLayout cardLayout;
 
@@ -38,17 +38,18 @@ public class CardLayoutFrameServer extends JFrame {
 
     private JButton quizOneButton;
     private JButton quizTwoButton;
-    private JButton restartButton;
+    private JButton skipButton;
     private ButtonHandler handler;
 
     private JLabel questionLabel;
     private JLabel timerLabel;
     private JLabel correctAnswerLabel;
+    private JLabel scoreLabel;
     private JLabel[] answerLabels = new JLabel[4];
 
     private HashMap<Integer, ArrayList<String>> questionPair;
     private List<Integer> correctAnswers;
-
+    private JLabel leaderboardArea;
     private GameServer gameServer;
 
     public CardLayoutFrameServer(GameServer gameServer, String clientUsername) {
@@ -65,6 +66,7 @@ public class CardLayoutFrameServer extends JFrame {
         handler = new ButtonHandler();
         quizOneButton.addActionListener(handler);
         quizTwoButton.addActionListener(handler);
+        skipButton.addActionListener(handler);
 
 
         add(cardPanel);
@@ -146,6 +148,14 @@ public class CardLayoutFrameServer extends JFrame {
         middlePanel.add(answerPanel);
 
         gamePanel.add(middlePanel,BorderLayout.CENTER);
+
+        //add skip button
+        skipButton = new JButton("Skip / Next Question");
+        skipButton.setFont(new Font("Tahoma", Font.BOLD, 24));
+        skipButton.addActionListener(handler);
+
+        gamePanel.add(skipButton, BorderLayout.SOUTH);
+
         //set extra panels clear
         middlePanel.setOpaque(false);
         timerPanel.setOpaque(false);
@@ -156,30 +166,50 @@ public class CardLayoutFrameServer extends JFrame {
     }
 
     private void createResultsPanel() {
+        //user score
         resultPanel = new JPanel(new BorderLayout());
 
         JLabel resultLabel = new JLabel("Results Screen", SwingConstants.CENTER);
         resultLabel.setFont(new Font("Arial", Font.BOLD, 40));
 
-        JLabel scoreLabel = new JLabel(
-                clientUsername + "'s high score is " + clientScore,
-                SwingConstants.CENTER
-        );
+        scoreLabel = new JLabel("", SwingConstants.CENTER);
         scoreLabel.setFont(new Font("Arial", Font.BOLD, 45));
 
-        restartButton = new JButton("Restart");
-        restartButton.setFont(new Font("Arial", Font.BOLD, 30));
-        restartButton.addActionListener(handler);
+        //leaderboard
+        leaderboardArea = new JLabel();
+        leaderboardArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        leaderboardArea.setHorizontalAlignment(SwingConstants.CENTER);
+        leaderboardArea.setVerticalAlignment(SwingConstants.TOP);
+
+        JPanel centerPanel = new JPanel(new GridLayout(2,1,0,0));
+        centerPanel.add(scoreLabel);
+        centerPanel.add(leaderboardArea);
 
         resultPanel.add(resultLabel, BorderLayout.NORTH);
-        resultPanel.add(scoreLabel, BorderLayout.CENTER);
-        resultPanel.add(restartButton, BorderLayout.SOUTH);
+        resultPanel.add(centerPanel, BorderLayout.CENTER);
 
         cardPanel.add(resultPanel, "R");
     }
 
     public void showResultsPanel() {
         createResultsPanel();
+        scoreLabel.setText(
+                clientUsername + "'s score is " + clientScore
+        );
+        String scoresText = "<html><div style='text-align: center;'>";
+
+        scoresText += "<b>Top 10 Scores</b><br>";
+        scoresText += "-------------------------<br><br>";
+
+        scoresText += gameServer.getLeaderboard()
+                .replace("\n", "<br>");
+
+        scoresText += "</div></html>";
+
+        gameServer.sendLeaderboard(scoresText);
+
+        leaderboardArea.setText(scoresText);
+
         cardLayout.show(cardPanel, "R");
     }
 
@@ -194,13 +224,7 @@ public class CardLayoutFrameServer extends JFrame {
                 if (time == 0) {
                     timer.stop();
 
-                    int correctIndex = correctAnswers.get(currentQuestionsIdx) - 1;
-
-                    answerLabels[correctIndex].setBackground(Color.GREEN);
-
-                    correctAnswerLabel.setText(
-                            "Correct Answer: " + answerLabels[correctIndex].getText()
-                    );
+                    showCorrectAnswer();
 
                     Timer nextQuestionTimer = new Timer(2000, new ActionListener() {
 
@@ -225,7 +249,7 @@ public class CardLayoutFrameServer extends JFrame {
             gameServer.sendMessage("Game Over");
             clientScore = gameServer.receiveScore();
             gameServer.updateScore(clientUsername, clientScore);
-            clientScore = gameServer.getScore(clientUsername);
+            //clientScore = gameServer.getScore(clientUsername);
             showResultsPanel();
             return;
         }
@@ -278,6 +302,16 @@ public class CardLayoutFrameServer extends JFrame {
         }
     }
 
+    private void showCorrectAnswer() {
+        int correctIndex = correctAnswers.get(currentQuestionsIdx) - 1;
+
+        answerLabels[correctIndex].setBackground(Color.GREEN);
+
+        correctAnswerLabel.setText(
+                "Correct Answer: " + answerLabels[correctIndex].getText()
+        );
+    }
+
     private class ButtonHandler implements ActionListener {
 
         @Override
@@ -294,6 +328,17 @@ public class CardLayoutFrameServer extends JFrame {
                 loadNextQuestions();
                 cardLayout.show(cardPanel, "G");
                 gameServer.sendMessage("Q2");
+            }else if(e.getSource() == skipButton){
+                timer.stop();
+                showCorrectAnswer();
+                currentQuestionsIdx++;
+                if(currentQuestionsIdx >= questionPair.size()) {
+                    loadNextQuestions();
+                }
+                else {
+                    loadNextQuestions();
+                    gameServer.sendMessage("Next Question");
+                }
             }
         }
     }

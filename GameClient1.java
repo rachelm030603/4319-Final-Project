@@ -1,4 +1,4 @@
-package FinalProjectBeta;
+package FinalProjectRachel2;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class GameClient1 {
-    private static final String SERVER_HOST = "BigLaptop57";
+    private static final String SERVER_HOST = "localhost";
     private static final int PORT = 8081;
 
     private ObjectOutputStream output;

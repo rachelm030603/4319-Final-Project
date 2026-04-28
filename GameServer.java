@@ -1,4 +1,4 @@
-package FinalProjectBeta;
+package FinalProjectRachel2;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -78,8 +78,8 @@ public class GameServer {
                     user = addUser(username, password);
                 }
 
-                    String message = "New user " + user.getUsername() + " created. ";
-                    outputStream.writeObject(message);
+                String message = "New user " + user.getUsername() + " created. ";
+                outputStream.writeObject(message);
 
             }
             gameServer.createQuiz(username);
@@ -220,11 +220,46 @@ public class GameServer {
         return 0;
     }
 
-    public String receiveUsername() {
+    public String getLeaderboard() {
+        StringBuilder leaderboard = new StringBuilder();
+
+        leaderboard.append("Top 10 Scores\n");
+        leaderboard.append("-------------------------\n");
+
         try {
-            String clientUsername = (String) inputStream.readObject();
-            return clientUsername;
-        } catch(IOException | ClassNotFoundException e) {
+            String sql = "SELECT username, score FROM users ORDER BY score DESC LIMIT 10";
+
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+
+            int rank = 1;
+
+            while (rs.next()) {
+                String username = rs.getString("username");
+                int score = rs.getInt("score");
+
+                leaderboard.append(rank)
+                        .append(". ")
+                        .append(username)
+                        .append(" - ")
+                        .append(score)
+                        .append("\n");
+
+                rank++;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return leaderboard.toString();
+    }
+
+    public void sendLeaderboard(String leaderboard) {
+        try {
+            outputStream.writeObject(leaderboard);
+            outputStream.flush();
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
