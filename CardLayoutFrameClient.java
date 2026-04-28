@@ -1,4 +1,4 @@
-package FinalProjectBeta;
+package FinalProjectRachel2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,13 +13,13 @@ public class CardLayoutFrameClient extends JFrame {
     private static Icon stopWatch = new ImageIcon(
             CardLayoutFrameServer.class.getResource("stopWatch.png"));
     private static Icon fish = new ImageIcon(
-            CardLayoutFrameServer.class.getResource("fish.png"));
+            CardLayoutFrameServer.class.getResource("fishy.png"));
     private static Icon thinkingGIF = new ImageIcon(
             CardLayoutFrameServer.class.getResource("batman_think_120.gif"));
     private static Icon solarSystem = new ImageIcon(
             CardLayoutFrameServer.class.getResource("solarSystem.png"));
     private static Icon fireworks = new ImageIcon(
-            CardLayoutFrameServer.class.getResource("Fire_Night_Sticker_by_haenaillust.gif"));
+            CardLayoutFrameServer.class.getResource("fireworks.gif"));
 
     private int time = 10;
     private int currentQuestionsIdx;
@@ -28,6 +28,7 @@ public class CardLayoutFrameClient extends JFrame {
     private String username;
 
     private Timer timer;
+    private boolean answered = false;
 
     private JPanel cardPanel;
     private JPanel welcomePanel;
@@ -213,19 +214,25 @@ public class CardLayoutFrameClient extends JFrame {
 
     public void createResultsPanel() {
         resultPanel = new JPanel(new BorderLayout());
-        JLabel resultLabel = new JLabel("Results Screen", SwingConstants.CENTER);
-        resultLabel.setFont(new Font("Arial", Font.BOLD, 40));
-
-        JLabel scoreLabel = new JLabel(
-                username + "'s score is " + score,
-                SwingConstants.CENTER
-        );
-        scoreLabel.setFont(new Font("Arial", Font.BOLD, 45));
-
-        resultPanel.add(resultLabel, BorderLayout.NORTH);
-        resultPanel.add(scoreLabel, BorderLayout.CENTER);
-
+        JLabel resultLabel =new JLabel("Results Screen - " + username, SwingConstants.CENTER);
+        resultLabel.setFont(new Font("Arial", Font.PLAIN, 24));
+        resultLabel.setForeground(Color.WHITE);
+        resultPanel.add(resultLabel,BorderLayout.NORTH);
         cardPanel.add(resultPanel, "R");
+
+        JPanel scorePanel = new JPanel(new GridLayout(2,1,0,0));
+
+        JLabel scoreLabel = new JLabel("Your score is " + score+ "!",SwingConstants.CENTER);
+        JLabel fireGIF = new JLabel(fireworks);
+        scoreLabel.setFont(new Font("Arial", Font.BOLD,55));
+        scoreLabel.setForeground(Color.WHITE);
+        scorePanel.add(scoreLabel,BorderLayout.CENTER);
+        scorePanel.add(fireGIF,BorderLayout.CENTER);
+
+        scorePanel.setOpaque(false);
+
+        resultPanel.setBackground(new Color(12, 12,12));
+        resultPanel.add(scorePanel);
     }
 
     public void showResultsPanel() {
@@ -238,11 +245,15 @@ public class CardLayoutFrameClient extends JFrame {
             importQuestions(1);
             loadNextQuestions();
             cardLayout.show(cardPanel, "G");
+
+            startServerListener();
         }
         else if(serverQuiz.equalsIgnoreCase("Q2")) {
             importQuestions(2);
             loadNextQuestions();
             cardLayout.show(cardPanel, "G");
+
+            startServerListener();
         }
     }
 
@@ -314,6 +325,7 @@ public class CardLayoutFrameClient extends JFrame {
         time = 10;
         timerLabel.setText("" + time);
         correctAnswerLabel.setText("");
+        answered=false;
 
         for(int i = 0; i < 4; i++) {
             styleButton(optionButtons[i], 20,242,161,187);
@@ -347,17 +359,6 @@ public class CardLayoutFrameClient extends JFrame {
                     correctAnswerLabel.setText(
                             "Correct Answer: " + optionButtons[correctIndex].getText()
                     );
-
-                    Timer nextQuestionTimer = new Timer(2000, new ActionListener() {
-
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            serverNextQuestion();
-                        }
-                    });
-
-                    nextQuestionTimer.setRepeats(false);
-                    nextQuestionTimer.start();
                 }
             }
         });
@@ -466,7 +467,8 @@ public class CardLayoutFrameClient extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            //stop timer
+
+            answered=true;
 
             //check answer
             if(index == correctAnswers.get(currentQuestionsIdx)){
@@ -489,10 +491,6 @@ public class CardLayoutFrameClient extends JFrame {
                         "Correct Answer: " + optionButtons[correctIndex].getText()
                 );
             }
-            if(time == 0) {
-                currentQuestionsIdx++;
-                serverNextQuestion();
-            }
         }
     }
 
@@ -501,6 +499,41 @@ public class CardLayoutFrameClient extends JFrame {
         button.setBackground(new Color(r,g,b));
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
+    }
+    private void startServerListener() {
+
+        Thread listenerThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                while (true) {
+
+                    String message = gameClient1.receiveMessage();
+
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if (message.equalsIgnoreCase("Next Question")) {
+
+                                currentQuestionsIdx++;
+                                loadNextQuestions();
+
+                            } else if (message.equalsIgnoreCase("Game Over")) {
+
+                                timer.stop();
+                                gameClient1.sendScore(score);
+                                showResultsPanel();
+
+                                return;
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        listenerThread.start();
     }
 
 }
